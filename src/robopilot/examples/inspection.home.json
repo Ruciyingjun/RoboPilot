@@ -1,0 +1,44 @@
+{
+  "$comment": "用途：家居场景客厅/卧室红色区域巡检与返航；不是工具箱语义识别。",
+  "version": 1,
+  "name": "home_inspection",
+  "steps": [
+    {
+      "id": "go_living",
+      "action": "navigate",
+      "place": "living_room",
+      "timeout_s": 180
+    },
+    {
+      "id": "inspect_living",
+      "action": "inspect",
+      "place": "living_room",
+      "target": "red_marker",
+      "depends_on": [
+        "go_living"
+      ],
+      "timeout_s": 15
+    },
+    {
+      "id": "go_bedroom",
+      "action": "navigate",
+      "place": "bedroom",
+      "timeout_s": 180
+    },
+    {
+      "id": "inspect_bedroom",
+      "action": "inspect",
+      "place": "bedroom",
+      "target": "red_marker",
+      "depends_on": [
+        "go_bedroom"
+      ],
+      "timeout_s": 15
+    },
+    {
+      "id": "return",
+      "action": "return_to_start",
+      "timeout_s": 180
+    }
+  ]
+}

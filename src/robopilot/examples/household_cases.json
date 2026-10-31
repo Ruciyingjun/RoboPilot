@@ -1,0 +1,114 @@
+{
+  "$comment": "用途：新增家居检查校准场景清单；image为空表示尚未采集，不是假装已有评测图片。",
+  "version": 1,
+  "cases": [
+    {
+      "id": "backpack_hanging_hanging",
+      "target": "backpack_hanging",
+      "scene": {
+        "backpack_state": "hanging"
+      },
+      "expected": "detected",
+      "image": "runs/household-samples/present/backpack_hanging.png",
+      "split": "calibration",
+      "observed": "detected"
+    },
+    {
+      "id": "backpack_hanging_floor",
+      "target": "backpack_hanging",
+      "scene": {
+        "backpack_state": "floor"
+      },
+      "expected": "not_detected",
+      "image": "runs/household-samples/negative/backpack_hanging.png",
+      "split": "calibration",
+      "observed": "not_detected"
+    },
+    {
+      "id": "backpack_hanging_absent",
+      "target": "backpack_hanging",
+      "scene": {
+        "backpack_state": "absent"
+      },
+      "expected": "not_detected",
+      "image": null,
+      "split": "calibration"
+    },
+    {
+      "id": "backpack_hanging_occluded",
+      "target": "backpack_hanging",
+      "scene": {
+        "backpack_state": "occluded"
+      },
+      "expected": "unknown",
+      "image": null,
+      "split": "calibration"
+    },
+    {
+      "id": "door_closed_closed",
+      "target": "door_closed",
+      "scene": {
+        "door_state": "closed"
+      },
+      "expected": "detected",
+      "image": "runs/household-samples/present/door_closed.png",
+      "split": "calibration",
+      "observed": "detected"
+    },
+    {
+      "id": "door_closed_open",
+      "target": "door_closed",
+      "scene": {
+        "door_state": "open"
+      },
+      "expected": "not_detected",
+      "image": "runs/household-samples/open-door-wide/door_closed.png",
+      "split": "calibration",
+      "observed": "not_detected",
+      "initial_image": "runs/household-samples/negative/door_closed.png",
+      "initial_observed": "unknown"
+    },
+    {
+      "id": "door_closed_ajar",
+      "target": "door_closed",
+      "scene": {
+        "door_state": "ajar"
+      },
+      "expected": "not_detected",
+      "image": null,
+      "split": "calibration"
+    },
+    {
+      "id": "fruit_bowl_present",
+      "target": "fruit_bowl",
+      "scene": {
+        "fruit_state": "present"
+      },
+      "expected": "detected",
+      "image": "runs/household-samples/present/fruit_bowl.png",
+      "split": "calibration",
+      "observed": "detected"
+    },
+    {
+      "id": "fruit_bowl_empty",
+      "target": "fruit_bowl",
+      "scene": {
+        "fruit_state": "empty"
+      },
+      "expected": "not_detected",
+      "image": "runs/household-samples/negative/fruit_bowl.png",
+      "split": "calibration",
+      "observed": "not_detected"
+    },
+    {
+      "id": "fruit_bowl_absent",
+      "target": "fruit_bowl",
+      "scene": {
+        "fruit_state": "absent"
+      },
+      "expected": "not_detected",
+      "image": null,
+      "split": "calibration"
+    }
+  ]
+}

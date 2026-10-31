@@ -1,0 +1,12 @@
+{
+  "$comment": "用途：在默认演示地图到 A、B 两个观察点检查红色标记并返回起点。",
+  "version": 1,
+  "name": "two_point_inspection",
+  "steps": [
+    {"id": "go_a", "action": "navigate", "place": "checkpoint_a", "timeout_s": 120},
+    {"id": "inspect_a", "action": "inspect", "place": "checkpoint_a", "target": "red_marker", "depends_on": ["go_a"], "timeout_s": 10},
+    {"id": "go_b", "action": "navigate", "place": "checkpoint_b", "timeout_s": 120},
+    {"id": "inspect_b", "action": "inspect", "place": "checkpoint_b", "target": "red_marker", "depends_on": ["go_b"], "timeout_s": 10},
+    {"id": "return", "action": "return_to_start", "timeout_s": 120}
+  ]
+}

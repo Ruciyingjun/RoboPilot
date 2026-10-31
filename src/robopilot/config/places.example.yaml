@@ -1,0 +1,14 @@
+# 用途：演示命名检查点的位置和朝向配置；示例坐标尚未在 Gazebo 地图中标定。
+# Protocol demonstration only. These are not calibrated room coordinates.
+# Before --backend ros, create your own places.yaml from the actual RViz map.
+version: 1
+frame_id: map
+places:
+  checkpoint_a:
+    x: -1.5
+    y: -0.5
+    yaw: 0.0
+  checkpoint_b:
+    x: -1.5
+    y: 0.5
+    yaw: 1.57

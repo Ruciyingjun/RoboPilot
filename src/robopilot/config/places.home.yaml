@@ -1,0 +1,32 @@
+# 用途：家居地图酒店机器人观察点；客厅/卧室/厨房与起点返航已单次实测；不适用于旧地图。
+version: 1
+frame_id: map
+places:
+  living_room:
+    x: -2.5
+    y: 1.1
+    yaw: 0.367
+  bedroom:
+    x: 1.7
+    y: 1.5
+    yaw: 0.0
+  kitchen:
+    x: -2.5
+    y: -2.3
+    yaw: -1.57
+  entrance:
+    x: 2.7
+    y: -2.1
+    yaw: 1.5708
+  backpack_check:
+    x: 2.0
+    y: 2.2
+    yaw: 1.79
+  door_check:
+    x: 1.1
+    y: -1.9
+    yaw: -1.5708
+  fruit_check:
+    x: -2.05
+    y: -2.8
+    yaw: 0.0

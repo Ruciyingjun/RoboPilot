@@ -1,0 +1,7 @@
+# 用途：将中文检查点名称映射到已验证地点 ID；只是演示标签，不代表自动理解房间。
+version: 1
+aliases:
+  A点: checkpoint_a
+  检查点A: checkpoint_a
+  B点: checkpoint_b
+  检查点B: checkpoint_b

@@ -1,0 +1,8 @@
+{
+ "$comment":"用途：家居地图厨房导航与玄关返航验证，不进行物体语义识别。",
+ "version":1,"name":"home_kitchen_navigation",
+ "steps":[
+  {"id":"kitchen","action":"navigate","place":"kitchen","timeout_s":180},
+  {"id":"return","action":"return_to_start","timeout_s":180}
+ ]
+}

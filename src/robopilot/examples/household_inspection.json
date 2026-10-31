@@ -1,0 +1,60 @@
+{
+  "$comment": "用途：检查墙挂背包、门关闭和厨房果盘，记录条件是否满足并返航。",
+  "version": 1,
+  "name": "household_inspection",
+  "steps": [
+    {
+      "id": "go_backpack_hanging",
+      "action": "navigate",
+      "place": "backpack_check",
+      "timeout_s": 180
+    },
+    {
+      "id": "check_backpack_hanging",
+      "action": "inspect",
+      "place": "backpack_check",
+      "target": "backpack_hanging",
+      "timeout_s": 60,
+      "depends_on": [
+        "go_backpack_hanging"
+      ]
+    },
+    {
+      "id": "go_door_closed",
+      "action": "navigate",
+      "place": "door_check",
+      "timeout_s": 180
+    },
+    {
+      "id": "check_door_closed",
+      "action": "inspect",
+      "place": "door_check",
+      "target": "door_closed",
+      "timeout_s": 60,
+      "depends_on": [
+        "go_door_closed"
+      ]
+    },
+    {
+      "id": "go_fruit_bowl",
+      "action": "navigate",
+      "place": "fruit_check",
+      "timeout_s": 180
+    },
+    {
+      "id": "check_fruit_bowl",
+      "action": "inspect",
+      "place": "fruit_check",
+      "target": "fruit_bowl",
+      "timeout_s": 60,
+      "depends_on": [
+        "go_fruit_bowl"
+      ]
+    },
+    {
+      "id": "return",
+      "action": "return_to_start",
+      "timeout_s": 180
+    }
+  ]
+}

@@ -1,0 +1,502 @@
+{
+  "$comment": "用途：26 条人工标注仿真规划样本，16 个支持任务和 10 个应拒绝/澄清任务；预期不由意图解析器生成。",
+  "version": 1,
+  "cases": [
+    {
+      "id": "simple_a",
+      "category": "normal",
+      "instruction": "去A点检查红色标记；返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "navigate",
+            "place": "checkpoint_a"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_a",
+            "target": "red_marker"
+          },
+          {
+            "action": "return_to_start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "two_points",
+      "category": "normal",
+      "instruction": "先去A点检查红色标记，再去B点检查红色标记，最后返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "navigate",
+            "place": "checkpoint_a"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_a",
+            "target": "red_marker"
+          },
+          {
+            "action": "navigate",
+            "place": "checkpoint_b"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_b",
+            "target": "red_marker"
+          },
+          {
+            "action": "return_to_start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reverse_order",
+      "category": "ordering",
+      "instruction": "先到B点看看红色标记是否还在，然后到A点也检查一下，最后回到起点",
+      "memory": "none",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "navigate",
+            "place": "checkpoint_b"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_b",
+            "target": "red_marker"
+          },
+          {
+            "action": "navigate",
+            "place": "checkpoint_a"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_a",
+            "target": "red_marker"
+          },
+          {
+            "action": "return_to_start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "navigation_only",
+      "category": "normal",
+      "instruction": "先去A点，再去B点，最后返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "navigate",
+            "place": "checkpoint_a"
+          },
+          {
+            "action": "navigate",
+            "place": "checkpoint_b"
+          },
+          {
+            "action": "return_to_start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "return_only",
+      "category": "normal",
+      "instruction": "返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "return_to_start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "no_return",
+      "category": "normal",
+      "instruction": "去A点检查红色标记",
+      "memory": "none",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "navigate",
+            "place": "checkpoint_a"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_a",
+            "target": "red_marker"
+          }
+        ]
+      }
+    },
+    {
+      "id": "paraphrase_a",
+      "category": "paraphrase",
+      "instruction": "请前往检查点A确认红色标记是否还在，完成后返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "navigate",
+            "place": "checkpoint_a"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_a",
+            "target": "red_marker"
+          },
+          {
+            "action": "return_to_start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "separate_inspect",
+      "category": "paraphrase",
+      "instruction": "先去A点，检查红色标记，然后去B点，检查红色标记，最后返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "navigate",
+            "place": "checkpoint_a"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_a",
+            "target": "red_marker"
+          },
+          {
+            "action": "navigate",
+            "place": "checkpoint_b"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_b",
+            "target": "red_marker"
+          },
+          {
+            "action": "return_to_start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "both_points",
+      "category": "paraphrase",
+      "instruction": "A点和B点都检查红色标记，最后返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "navigate",
+            "place": "checkpoint_a"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_a",
+            "target": "red_marker"
+          },
+          {
+            "action": "navigate",
+            "place": "checkpoint_b"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_b",
+            "target": "red_marker"
+          },
+          {
+            "action": "return_to_start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "revisit_order",
+      "category": "ordering",
+      "instruction": "先去A点检查红色标记，再去B点，再去A点检查红色标记，最后返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "navigate",
+            "place": "checkpoint_a"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_a",
+            "target": "red_marker"
+          },
+          {
+            "action": "navigate",
+            "place": "checkpoint_b"
+          },
+          {
+            "action": "navigate",
+            "place": "checkpoint_a"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_a",
+            "target": "red_marker"
+          },
+          {
+            "action": "return_to_start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "memory_a",
+      "category": "memory",
+      "instruction": "去上次发现红色标记的地方重新检查，再返回起点",
+      "memory": "seen_a",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "navigate",
+            "place": "checkpoint_a"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_a",
+            "target": "red_marker"
+          },
+          {
+            "action": "return_to_start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "memory_b",
+      "category": "memory",
+      "instruction": "去最近一次看到红色标记的位置复查，最后返回起点",
+      "memory": "seen_b",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "navigate",
+            "place": "checkpoint_b"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_b",
+            "target": "red_marker"
+          },
+          {
+            "action": "return_to_start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "memory_after_missing",
+      "category": "memory",
+      "instruction": "去上次发现红色标记的地方检查红色标记；返回起点",
+      "memory": "seen_a_then_missing",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "navigate",
+            "place": "checkpoint_a"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_a",
+            "target": "red_marker"
+          },
+          {
+            "action": "return_to_start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "forbid_b",
+      "category": "negation",
+      "instruction": "不要去B点，只去A点检查红色标记，最后返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "navigate",
+            "place": "checkpoint_a"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_a",
+            "target": "red_marker"
+          },
+          {
+            "action": "return_to_start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "forbid_return",
+      "category": "negation",
+      "instruction": "去A点检查红色标记，不用返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "navigate",
+            "place": "checkpoint_a"
+          },
+          {
+            "action": "inspect",
+            "place": "checkpoint_a",
+            "target": "red_marker"
+          }
+        ]
+      }
+    },
+    {
+      "id": "forbid_a",
+      "category": "negation",
+      "instruction": "别去A点，只去B点，最后返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "accept",
+        "steps": [
+          {
+            "action": "navigate",
+            "place": "checkpoint_b"
+          },
+          {
+            "action": "return_to_start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "unknown_place",
+      "category": "unsupported",
+      "instruction": "去C点检查红色标记，然后返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "reject"
+      },
+      "reason": "C点没有配置"
+    },
+    {
+      "id": "open_door",
+      "category": "unsupported",
+      "instruction": "去A点打开门，然后返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "reject"
+      },
+      "reason": "没有门操作技能"
+    },
+    {
+      "id": "toolbox",
+      "category": "unsupported",
+      "instruction": "去A点检查工具箱，然后返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "reject"
+      },
+      "reason": "颜色检测不能作为工具箱语义识别"
+    },
+    {
+      "id": "grasp",
+      "category": "unsupported",
+      "instruction": "去A点抓取物体，然后返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "reject"
+      },
+      "reason": "没有机械臂技能"
+    },
+    {
+      "id": "conditional",
+      "category": "conditional",
+      "instruction": "如果A点没有标记就去B点，否则返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "reject"
+      },
+      "reason": "当前执行器没有条件分支"
+    },
+    {
+      "id": "until_found",
+      "category": "conditional",
+      "instruction": "去A点反复检查，直到发现红色标记后再返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "reject"
+      },
+      "reason": "当前执行器没有循环条件"
+    },
+    {
+      "id": "ambiguous_place",
+      "category": "ambiguous",
+      "instruction": "去那里检查红色标记",
+      "memory": "none",
+      "expected": {
+        "decision": "reject"
+      },
+      "reason": "那里没有明确指代"
+    },
+    {
+      "id": "missing_memory",
+      "category": "memory",
+      "instruction": "去上次发现红色标记的地方重新检查，再返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "reject"
+      },
+      "reason": "没有可用历史发现"
+    },
+    {
+      "id": "contradictory_place",
+      "category": "negation",
+      "instruction": "不要去A点；去A点检查红色标记；返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "reject"
+      },
+      "reason": "同一地点访问要求冲突"
+    },
+    {
+      "id": "ambiguous_negation",
+      "category": "negation",
+      "instruction": "别去A点检查红色标记，最后返回起点",
+      "memory": "none",
+      "expected": {
+        "decision": "reject"
+      },
+      "reason": "混合地点和检查否定需澄清"
+    }
+  ]
+}

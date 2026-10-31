@@ -1,0 +1,9 @@
+{
+  "$comment": "用途：通过 0.1 秒导航期限注入超时，验证取消确认后仍能返回起点；非正常性能评测。",
+  "version": 1,
+  "name": "injected_navigation_timeout",
+  "steps": [
+    {"id": "short_deadline", "action": "navigate", "place": "checkpoint_b", "timeout_s": 0.1},
+    {"id": "return", "action": "return_to_start", "timeout_s": 120}
+  ]
+}
