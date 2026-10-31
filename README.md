@@ -24,7 +24,7 @@
 **一次任务，交付一份带相机证据的巡检报告。**
 
 
-<img width="372" height="240" alt="录屏2026-10-31 17 49 19_metool (1)" src="https://github.com/user-attachments/assets/967563b8-1544-4292-8e9c-04f1c89b6457" />
+<img width="80%" alt="巡检演示" src="https://github.com/user-attachments/assets/967563b8-1544-4292-8e9c-04f1c89b6457" />
 
 
 从任务预览到机器人移动，从相机画面到检查结论，整个过程可观察、可追溯。
