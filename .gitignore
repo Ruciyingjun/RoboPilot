@@ -1,7 +1,14 @@
-log/
+# 用途：排除构建产物、运行数据、Python 缓存和虚拟环境，避免提交到版本库。
 build/
+install/
+log/
 runs/
-*.env
 __pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
 .venv/
-venv/
+.env
+.env.*
+*.local.env
+!.env.example
