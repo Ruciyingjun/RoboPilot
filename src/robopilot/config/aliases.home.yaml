@@ -1,0 +1,10 @@
+# 用途：家居地图房间中文别名，不适用于旧演示地图。
+version: 1
+aliases:
+  客厅: living_room
+  卧室: bedroom
+  厨房: kitchen
+  玄关: entrance
+  背包检查点: backpack_check
+  门检查点: door_check
+  果盘检查点: fruit_check

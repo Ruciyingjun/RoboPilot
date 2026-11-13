@@ -1,0 +1,10 @@
+{
+  "$comment": "用途：演示前往检查点 A、检查点 B 并返回任务起点的导航计划，包含重试及失败策略。",
+  "version": 1,
+  "name": "two_checkpoints_and_return",
+  "steps": [
+    {"id": "go_a", "action": "navigate", "place": "checkpoint_a", "timeout_s": 120, "max_retries": 1},
+    {"id": "go_b", "action": "navigate", "place": "checkpoint_b", "timeout_s": 120},
+    {"id": "return", "action": "return_to_start", "timeout_s": 120, "on_failure": "abort"}
+  ]
+}

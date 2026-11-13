@@ -1,0 +1,9 @@
+source;share/robopilot/hook/pythonpath.ps1
+source;share/robopilot/hook/pythonpath.dsv
+source;share/robopilot/hook/pythonpath.sh
+source;share/robopilot/hook/ament_prefix_path.ps1
+source;share/robopilot/hook/ament_prefix_path.dsv
+source;share/robopilot/hook/ament_prefix_path.sh
+source;../../build/robopilot/share/robopilot/hook/pythonpath_develop.ps1
+source;../../build/robopilot/share/robopilot/hook/pythonpath_develop.dsv
+source;../../build/robopilot/share/robopilot/hook/pythonpath_develop.sh

@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+# 用途：自动加载本项目 ROS 工作区、固定家居配置及按需加载本机密钥，提供简短启动命令。
+set -eo pipefail
+PROJECT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+cd "$PROJECT_DIR"
+command_name="${1:-help}"
+if [[ "$command_name" == help || "$command_name" == --help || "$command_name" == -h ]]; then
+  cat <<'HELP'
+用法（在项目根目录）：
+  ./robopilot sim             启动全新家居世界并初始化；机器人移动后不要重复初始化
+  ./robopilot sim-lite        同上，但不启动 RViz，减少图形负载
+  ./robopilot inspect         执行固定的客厅→卧室→返航巡检
+  ./robopilot tasks           查看可执行检查清单
+  ./robopilot check           中文/编号选择任务，预览后确认执行
+  ./robopilot household       墙挂背包→门关闭→厨房果盘检查并返航（云端视觉）
+  ./robopilot search-toolbox bedroom living_room  同上，使用云端工具箱类别识别
+  ./robopilot search bedroom living_room  LLM反馈循环：按顺序找红色标记，找到即停并返航
+  ./robopilot task '中文指令'  调用真实 LLM 并执行机器人任务
+  ./robopilot plan '中文指令'  调用真实 LLM 生成计划，不移动机器人
+  ./robopilot doctor          检查现有仿真，不重置初始位姿
+  ./robopilot build           构建本项目
+各命令末尾可追加原 CLI 参数。task/plan/search/search-toolbox 按需加载 robopilot.local.env；API 调用会产生用量。
+HELP
+  exit 0
+fi
+if [[ ! -f /opt/ros/jazzy/setup.bash ]]; then
+  echo '缺少 /opt/ros/jazzy/setup.bash' >&2; exit 2
+fi
+source /opt/ros/jazzy/setup.bash
+if [[ "$command_name" == build ]]; then
+  shift
+  exec colcon build --packages-select robopilot --symlink-install "$@"
+fi
+if [[ ! -f install/local_setup.bash ]]; then
+  echo '工作区尚未构建，请先执行 ./robopilot build' >&2; exit 2
+fi
+source install/local_setup.bash
+shift
+places=src/robopilot/config/places.home.yaml
+aliases=src/robopilot/config/aliases.home.yaml
+load_model_env() {
+    if [[ -f robopilot.local.env ]]; then
+      unset ROBOPILOT_LLM_API_KEY
+      set -a
+      source robopilot.local.env
+      set +a
+    fi
+    if [[ "${1:-required}" != optional && -z "${ROBOPILOT_LLM_API_KEY:-${DEEPSEEK_API_KEY:-}}" ]]; then
+      echo '未配置密钥，请编辑项目根目录 robopilot.local.env；不要把密钥写进命令或本脚本。' >&2
+      exit 2
+    fi
+}
+case "$command_name" in
+  sim|sim-lite)
+    extra=()
+    [[ "$command_name" == sim-lite ]] && extra+=(use_rviz:=False)
+    exec ros2 launch "$PROJECT_DIR/install/robopilot/share/robopilot/launch/simulation.launch.py" scene:=home robot_body:=service \
+      headless:=False initialize_home:=True "${extra[@]}" "$@"
+    ;;
+  inspect)
+    exec ros2 run robopilot robopilot run --places "$places" \
+      --plan src/robopilot/examples/home_inspection.json --backend ros \
+      --startup-timeout 90 --output runs/my-home-demo "$@"
+    ;;
+  tasks|check)
+    if [[ "$command_name" == tasks ]]; then
+      exec ros2 run robopilot robopilot check --list
+    fi
+    load_model_env optional
+    exec ros2 run robopilot robopilot check --places "$places" --backend ros "$@"
+    ;;
+  household)
+    load_model_env
+    exec ros2 run robopilot robopilot run --places "$places" \
+      --plan src/robopilot/examples/household_inspection.json --backend ros \
+      --startup-timeout 90 --output runs/household-inspection "$@"
+    ;;
+  search|search-toolbox)
+    if [[ $# -lt 1 ]]; then
+      echo '用法：./robopilot search bedroom living_room（地点ID，顺序搜索红色标记并返航）' >&2
+      exit 2
+    fi
+    load_model_env
+    target=red_marker
+    [[ "$command_name" == search-toolbox ]] && target=toolbox
+    exec ros2 run robopilot robopilot agent --places "$places" --backend ros --target "$target" \
+      --output runs/home-agent-search --search-places "$@"
+    ;;
+  task|plan)
+    if [[ $# -lt 1 || -z "$1" ]]; then
+      echo "用法：./robopilot $command_name '中文指令'" >&2; exit 2
+    fi
+    instruction="$1"; shift
+    load_model_env
+    common=(--places "$places" --aliases "$aliases" --instruction "$instruction" \
+      --planner llm --llm-format json --backend ros)
+    if [[ "$command_name" == task ]]; then
+      exec ros2 run robopilot robopilot mission "${common[@]}" \
+        --startup-timeout 90 --output runs/home-llm-demo "$@"
+    else
+      mkdir -p runs/home-llm-preview
+      exec ros2 run robopilot robopilot plan "${common[@]}" \
+        --memory runs/home-llm-demo --output "runs/home-llm-preview/$(date -u +%Y%m%dT%H%M%SZ)-$$.json" "$@"
+    fi
+    ;;
+  doctor)
+    exec ros2 run robopilot robopilot doctor --timeout 90 "$@"
+    ;;
+  *) echo "未知命令：$command_name；执行 ./robopilot help 查看帮助" >&2; exit 2 ;;
+esac

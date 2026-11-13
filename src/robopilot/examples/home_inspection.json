@@ -1,0 +1,12 @@
+{
+  "$comment": "用途：家居场景客厅与卧室红色区域巡检，随后返回本次任务起点。",
+  "version": 1,
+  "name": "home_inspection",
+  "steps": [
+    {"id":"living","action":"navigate","place":"living_room","timeout_s":180},
+    {"id":"inspect_living","action":"inspect","place":"living_room","target":"red_marker","depends_on":["living"],"timeout_s":20},
+    {"id":"bedroom","action":"navigate","place":"bedroom","timeout_s":180},
+    {"id":"inspect_bedroom","action":"inspect","place":"bedroom","target":"red_marker","depends_on":["bedroom"],"timeout_s":20},
+    {"id":"return","action":"return_to_start","timeout_s":180}
+  ]
+}
