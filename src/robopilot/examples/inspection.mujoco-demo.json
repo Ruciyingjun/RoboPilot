@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "name": "mujoco_demo_inspection",
+  "steps": [
+    {"id": "go", "action": "navigate", "place": "marker_check", "timeout_s": 90},
+    {"id": "look", "action": "inspect", "place": "marker_check", "target": "red_marker", "depends_on": ["go"], "timeout_s": 15},
+    {"id": "return", "action": "return_to_start", "timeout_s": 90}
+  ]
+}

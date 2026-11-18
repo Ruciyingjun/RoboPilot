@@ -8,7 +8,11 @@ from robopilot.home_materials import apply_materials
 
 def build_home(world, directory, toolbox_state='present', backpack_state='hanging',
                door_state='closed', fruit_state='present'):
-    """Replace sandbox models with a furnished apartment; return matching map YAML."""
+    """Build shared apartment geometry in an XML tree; return matching map YAML.
+
+    The SDF-style tree is an intermediate representation consumed by the
+    MuJoCo converter. No simulator runtime or external models are required.
+    """
     if toolbox_state not in ('present','absent','distractor','occluded'):
         raise ValueError('Invalid toolbox state')
     if backpack_state not in ('hanging','floor','absent','occluded') or door_state not in ('closed','open','ajar') or fruit_state not in ('present','empty','absent'):
@@ -113,7 +117,7 @@ def build_home(world, directory, toolbox_state='present', backpack_state='hangin
     for x in [-1.34, -1.06]:
         box('handle_post_' + str(x), x, 1.6, .41, .035, .06, .1, '0.12 0.13 0.14 1')
     box('toolbox_handle', -1.2, 1.6, .47, .31, .06, .035, '0.12 0.13 0.14 1')
-    # Continuous finish above Gazebo's z=0 grid: joints belong in the texture,
+    # Continuous finish above the z=0 ground plane: joints belong in the texture,
     # not in physical gaps between many coplanar board meshes.
     floor_visual = world.find("model[@name='floor']/link/visual")
     ET.SubElement(floor_visual, 'pose').text = '0 0 0.004 0 0 0'

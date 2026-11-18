@@ -1,0 +1,37 @@
+<mujoco model="robopilot_bridge_demo">
+  <compiler angle="radian"/>
+  <option timestep="0.005" gravity="0 0 -9.81"/>
+  <visual><global offwidth="320" offheight="240"/></visual>
+  <default><geom friction="1 .005 .001"/><joint damping=".02"/></default>
+  <worldbody>
+    <light pos="0 0 4"/>
+    <geom name="floor" type="plane" size="3 3 .1" rgba=".65 .65 .65 1"/>
+    <geom name="east" type="box" pos="3 0 .5" size=".1 3 .5"/>
+    <geom name="west" type="box" pos="-3 0 .5" size=".1 3 .5"/>
+    <geom name="north" type="box" pos="0 3 .5" size="3 .1 .5"/>
+    <geom name="south" type="box" pos="0 -3 .5" size="3 .1 .5"/>
+    <geom name="red_marker" type="box" pos="2 0 .3" size=".15 .25 .3" rgba="1 0 0 1"/>
+    <geom name="obstacle" type="box" pos="1.3 1 .3" size=".3 .3 .3"/>
+    <body name="base_link" pos="0 0 .16">
+      <joint name="base_x" type="slide" axis="1 0 0"/>
+      <joint name="base_y" type="slide" axis="0 1 0"/>
+      <joint name="base_yaw" type="hinge" axis="0 0 1"/>
+      <geom name="chassis" group="1" type="box" size=".18 .14 .06" mass="4" rgba=".1 .3 .65 1"/>
+      <geom group="1" type="sphere" pos=".15 0 -.13" size=".03" mass=".02" friction=".001 .001 .001"/>
+      <geom group="1" type="sphere" pos="-.15 0 -.13" size=".03" mass=".02" friction=".001 .001 .001"/>
+      <camera name="inspection" pos=".19 0 .24" xyaxes="0 -1 0 0 0 1" fovy="45"/>
+      <body name="left_wheel" pos="0 .19 -.08">
+        <joint name="left_wheel_joint" type="hinge" axis="0 1 0"/>
+        <geom group="1" type="cylinder" size=".08 .025" euler="1.57079632679 0 0" mass=".3" rgba=".1 .1 .1 1"/>
+      </body>
+      <body name="right_wheel" pos="0 -.19 -.08">
+        <joint name="right_wheel_joint" type="hinge" axis="0 1 0"/>
+        <geom group="1" type="cylinder" size=".08 .025" euler="1.57079632679 0 0" mass=".3" rgba=".1 .1 .1 1"/>
+      </body>
+    </body>
+  </worldbody>
+  <actuator>
+    <velocity name="left_motor" joint="left_wheel_joint" kv="2" forcelimited="true" forcerange="-3 3"/>
+    <velocity name="right_motor" joint="right_wheel_joint" kv="2" forcelimited="true" forcerange="-3 3"/>
+  </actuator>
+</mujoco>

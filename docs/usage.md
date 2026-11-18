@@ -7,63 +7,17 @@
 
 项目现状见 [README](../README.md)，验证记录见 [验收结果](acceptance.md)。v0.3 新增 mission 中文任务、地点别名及模型配置，见 [自然语言规划指南](planning.md)。所有终端先进入项目根目录。
 
-## 1. 构建与加载环境
+## 1. 当前环境与导航
 
-```bash
-cd /home/ruciyingjun/Desktop/enbodied_agent
-source /opt/ros/jazzy/setup.bash
-colcon build --packages-select robopilot --symlink-install
-source install/local_setup.bash
-ros2 run robopilot robopilot --help
-```
+安装、启动、SSH 实时画面及巡检见 [快速开始](quickstart.md)。
+使用 `./robopilot sim` 启动 MuJoCo，在另一终端执行 `./robopilot inspect`。
+底层 CLI 在运行中的容器内通过 `bash scripts/container.sh exec python -m robopilot ...` 调用。
+本页其余 `ros2 run robopilot robopilot ...` 等价于容器内 `python -m robopilot ...`。
+`places.demo.yaml` 为离线示例；家居实机式仿真使用 `places.home.yaml`，小场景用
+`places.mujoco-demo.yaml`。不要在不匹配的地图执行旧示例导航坐标。
 
-每打开一个新终端，都需要重新 source 上述两个 setup 文件。已安装依赖包括 Nav2、最小 TB3 仿真、ros_gz_image、cv_bridge、OpenCV、NumPy、YAML。
-
-## 2. 启动 Gazebo 与环境诊断
-
-在虚拟机 Ubuntu 桌面内的终端 1：
-
-```bash
-cd /home/ruciyingjun/Desktop/enbodied_agent
-source /opt/ros/jazzy/setup.bash
-source install/local_setup.bash
-ros2 launch "$PWD/install/robopilot/share/robopilot/launch/simulation.launch.py" robot_body:=turtlebot headless:=False
-```
-
-默认在现成世界中加入红色标记，给机器人增加 RGB 相机；不修改 /opt/ros 的文件。可用 `demo_marker:=False` 启动无标记场景。资源紧张时设 `headless:=True use_rviz:=True`，保留 RViz；纯无窗口运行可设 `use_rviz:=False`，但传感器仍需要图形渲染上下文。
-
-在终端 2 加载环境后，对**刚启动、机器人还没移动的默认演示场景**运行：
-
-```bash
-ros2 run robopilot robopilot doctor --initialize-demo --timeout 45
-```
-
-`--initialize-demo` 明确将定位初始化到默认出生位置 x=-2、y=-0.5、yaw=0。机器人已经移动或使用其他地图时不要使用此选项，改用 RViz 设置正确初始位姿，并运行不带初始化选项的 `doctor`。
-
-预期 JSON 中 clock_advancing=true、scan_samples=360、camera.available=true、ready=true，并输出定位位姿。相机为 320×240，主题为 `/robopilot/camera/image_raw`。
-
-启动仿真后请尽快运行上述初始化，不必等 RViz 所有状态变绿。Nav2 在等待 map→base_link 超时后可能中止导航栈激活；此时再设置位姿也不会自动重新激活整个导航栈。若日志出现 `Failed to bring up all requested nodes. Aborting bringup.`，先关闭并重新启动仿真，再及时执行初始化和诊断。
-
-截图中的「map frame does not exist」曾由 AMCL 缺少初始位姿引起；本次默认场景设置初始位姿后已恢复。若 doctor 未通过，先看它的错误信息及仿真终端日志。
-
-## 3. 执行真实仿真巡检
-
-在终端 2：
-
-```bash
-ros2 run robopilot robopilot run \
-  --places src/robopilot/config/places.demo.yaml \
-  --plan src/robopilot/examples/inspection.json \
-  --backend ros --output runs/demo
-```
-
-预期：前往 A → 检查红色标记 → 前往 B → 再检查 → 返回本次任务起点。默认场景 A 朝向红色标记，B 朝向另一方向，预期结果分别为 detected、not_detected。
-
-not_detected 表示检查已完成但当前视野没发现目标，因此该检查步骤可以是 SUCCEEDED；unknown 表示无法判断，步骤为 FAILED。
-
-在编辑器中预览终端输出路径中的 report.md，查看真实相机证据；mission.json 保存位姿、时间戳、错误码与耗时。仅观察机器人运动，也可使用 examples/navigation.json。places.demo.yaml 只适用于默认地图，其他地图需重新标定观察位姿和朝向。
-
-按 Ctrl+C 请求取消当前任务。取消未确认时执行器停止发送后续目标。运行任务时不要同时用 RViz 发送其他导航目标。
+检查结果 `not_detected` 表示检查完成但未发现对象，`unknown` 表示无法判断。
+报告、结构化记录和相机证据位于 `runs/`。任务期间不要发送其他导航目标或速度指令。
 
 ## 4. 中文指令生成计划
 
@@ -99,19 +53,9 @@ ros2 run robopilot robopilot run \
 
 mock 与 ROS 观测分开查询。not_detected/unknown 会追加历史，不会删除旧的 detected。历史发现仅决定复查地点，当前结论来自新的图像。更换地图时使用新的 --output/--memory 目录。
 
-可选环境变化实验：在本次演示世界中移除标记，再执行复查：
-
-```bash
-gz service -s /world/default/remove \
-  --reqtype gz.msgs.Entity --reptype gz.msgs.Boolean \
-  --timeout 5000 --req 'name: "red_marker", type: MODEL'
-```
-
-若设置过 GZ_PARTITION，服务命令必须与仿真使用相同值。重新启动仿真会恢复默认标记。
-
 ## 6. mock 与故障演示
 
-无需启动 ROS/Gazebo：
+无需启动 ROS/MuJoCo：
 
 ```bash
 PYTHONPATH=src/robopilot python3 -m robopilot run \

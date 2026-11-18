@@ -1,3 +1,5 @@
+> 历史资料：文中 Gazebo 验收与启动参数属于迁移前版本，旧启动链已删除。当前操作以 [快速开始](quickstart.md) 和 [MuJoCo 导航](mujoco-navigation.md) 为准；旧成绩不代表新仿真成绩。
+
 <!-- 用途：记录真实 DeepSeek 规划、拒绝边界、已发现问题及 Gazebo 闭环的可核对证据。 -->
 # v0.4 真实 DeepSeek 验收
 

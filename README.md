@@ -33,7 +33,7 @@
 
 ### 🧭 自主抵达，完成后返航
 
-在客厅、卧室、厨房与玄关之间移动，前往指定观察点，记录任务起点并在结束后返回。可同时通过 Gazebo 和 RViz 查看运动与导航过程。
+在客厅、卧室、厨房与玄关之间移动，前往指定观察点，记录任务起点并在结束后返回。通过 MuJoCo Web Viewer 实时查看运动过程。
 
 ### 👁️ 看见物体，也检查状态
 
@@ -55,9 +55,27 @@
 
 ## 3. 现在就体验
 
-完成[环境安装与密钥配置](docs/quickstart.md)后，在 Linux 项目目录打开两个终端。
+**无头服务器 / MuJoCo 路线：** 已提供家居场景、ROS 2 桥接、AMCL、Nav2 和实时网页查看。
+在已构建的项目容器环境中运行 `bash scripts/container.sh sim`，
+通过 SSH 隧道在本地浏览器打开 `http://localhost:18081`。
+启动、巡检命令和迁移边界见 [MuJoCo 家居导航](docs/mujoco-navigation.md)。
+`./robopilot sim` 使用同一 MuJoCo 容器入口；旧 Gazebo 启动链已移除。
 
-**终端 1：打开家居世界、导航栈与 RViz。**
+新增 [两层 Agent Runtime](docs/agent-runtime.md)：`workflow` 入口提供阶段 checkpoint、
+模型工具循环、预算持久化、导航 UUID 恢复与独立复核。
+首版以已校验 JSON 计划为契约，支持本地红色检查；真实模型与 MuJoCo 新入口验收仍待完成。
+
+新增 [RSI Prompt 改进闭环](docs/rsi.md)：人工复核失败案例、生成候选、配对评测、
+非退化门禁、显式激活与回滚。任务启动时固定视觉 Prompt 版本。
+`./robopilot rsi demo --output runs/rsi-demo-01` 可运行无需模型的完整机制演示；
+真实 VLM 和机器人性能改善需独立实验验证。
+
+新增 [RSI Prompt 改进闭环](docs/rsi.md)：案例导入、候选生成、配对评测、非退化门禁、激活与回滚。
+可用 `./robopilot rsi demo --output runs/rsi-demo-01` 运行无需模型的机制演示，真实优化收益另行评测。
+
+完成[环境安装与密钥配置](docs/quickstart.md)后，在服务器项目目录打开两个终端。
+
+**终端 1：打开 MuJoCo 家居世界、导航栈与网页查看器。**
 
 ```bash
 ./robopilot sim
@@ -65,13 +83,13 @@
 
 等待 `ready: true`。
 
-**终端 2：选择你想检查的任务。**
+**终端 2：运行已验收的本地红色标记巡检。**
 
 ```bash
-./robopilot check
+./robopilot inspect
 ```
 
-输入 `2,3,4`，预览后输入 `y`，执行背包、门和果盘检查。终端会输出报告路径。
+终端会输出报告路径。背包、门和果盘等云端语义检查入口仍保留，但新渲染下的准确率尚未验收。
 
 也可以单独体验工具反馈搜索：
 
@@ -83,7 +101,10 @@
 
 ## 4. 用实验记录能力边界
 
-六轮家居正反场景实验，固定执行三项检查并返航：
+以下是迁移前 Gazebo 环境的历史实验结果，不代表当前 MuJoCo 成绩。
+当前 MuJoCo 已完成一次客厅→卧室→返航闭环；真实返航位置误差约 0.15 米。
+
+历史六轮家居正反场景实验，固定执行三项检查并返航：
 
 | 指标 | 实测结果 |
 |---|---|
@@ -91,7 +112,7 @@
 | 视觉有效判定率 | **13/15 · 86.7%** |
 | 已提交任务平均耗时 | **91.56 秒** |
 | 已提交任务返航完成情况 | **5/5** |
-| 最近一次工程回归 | **210 项测试通过** |
+| 历史工程回归 | **210 项测试通过** |
 
 严格成功要求导航、判断和返航均符合预设标准。六轮包含一次启动失败；视觉包含一次误判与一次未知。耗时统计五次实际提交任务，包含识别失败，不含仿真启动与人工确认。该实验不打开 GUI，图片由助手非盲复核，是同地图小样本结果。[查看完整方法与失败案例](docs/metrics-experiment.md)。
 
@@ -99,7 +120,7 @@
 
 ---
 
-**技术基础：** ROS 2 Jazzy · Gazebo Harmonic · Nav2 · Python · DeepSeek · OpenCV · SQLite
+**技术基础：** ROS 2 Jazzy · MuJoCo 4 · Nav2 · Python · DeepSeek · OpenCV · SQLite
 
 [安装与运行](docs/quickstart.md) · [自选巡检](docs/user-inspection.md) · [Agent 工具循环](docs/agent-loop.md) · [记忆有效性](docs/memory-validity.md) · [系统设计](docs/design.md)
 

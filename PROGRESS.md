@@ -8,12 +8,12 @@
 
 ## 当前状态
 
-- 更新时间：2026-10-31（Asia/Shanghai）。当前版本：v0.5；增量支持三类家居关系/状态检查。
-- 阶段：M1 导航、M2 受控视觉、M3 地点级记忆均已有 Gazebo 实测；M4 已实现受限中文规则规划和可配置 LLM 接口；M5 已建立小样本验收与统计。
-- 正在做：受约束工具反馈搜索已完成首版实测与代码/产物清理；下一步扩展语义感知与任务契约。
-- 本轮完成：26 条人工预期、benchmark-plan 命令、首次候选/应用拒绝/技术错误分开计分、规则基线与真实 DeepSeek 评测、否定与反向顺序 Gazebo 验证、生命周期查询有界重试。
-- 验证结论：最新完整回归 205 项通过；真实模型工具循环成功，家居三轮固定任务成功。历史规划评测 DeepSeek 26/26（含10条应用前检）、规则17/26，见 docs/planner-benchmark.md。
-- 尚未完成：独立语义视觉测试集、多类别/多视角评测、模型任务理解大样本验证及视频；工具箱VLM已接入，颜色目标仍独立保留。
+- 更新时间：2026-11-16（Asia/Shanghai）。当前版本：v0.5 增量；默认 MuJoCo + ROS 2 Jazzy / Nav2。
+- 阶段：已完成 MuJoCo 家居场景、桥接、AMCL/Nav2 和实时网页迁移，旧 Gazebo 专用启动链已移除；迁移前成绩保留为历史证据。
+- 正在做：RSI 受控视觉 Prompt 改进闭环首版已完成；下一步收集独立人工标签案例并进行真实模型评测，以及新 runtime 的真实模型 + MuJoCo 验收。
+- 本轮完成：新增 RSI CLI 和版本/案例/评测/激活存储，接入既有 VLM 及任务起点 Prompt 快照；单独保留 sandbox fixture 模式，生产激活仅接受真实调用评测。
+- 验证结论：最终完整回归 268 passed、1 条既有 ROS 未就绪测试警告；RSI 新增 27 项测试。离线演示完成退化拒绝、有效候选激活、快照隔离与回滚；不代表真实模型或机器人性能提升。
+- 尚未完成：自然语言规划阶段接入统一预算、云端视觉预算统一、上下文压缩、多机器人调度、跨仿真实例恢复；缺失模型用量或未知导航目标保持 BLOCKED，不自动重发。
 
 最新增量：工具箱VLM已完成反例复核与真实反馈循环，续作补齐配置/超时与相机裁切问题，162项回归通过；受约束 LLM 工具反馈搜索已完成真实 DeepSeek+Gazebo 分支验收，138 项测试通过；2026-10-30 同一世界连续三轮家居巡检 3/3 成功，独立 Nav2 进程正常关闭且资源清理通过；酒店服务机器人已完成客厅→卧室→起点闭环，头部相机客厅检测到红色、卧室未检测到；厨房导航与返航成功。单次受控验证，不代表泛化。查看 docs/home-scene.md。
 
@@ -33,7 +33,7 @@
 
 ## 接下来做什么
 
-优先：重复验证家居巡检稳定性与不同起点，再接工具箱语义识别。
+优先：两层 Agent Runtime 首版及恢复/ROS 回归已通过；下一步进行真实模型 + MuJoCo 端到端验收，并将自然语言规划、云端视觉纳入统一用量预算。模型调用与执行证据必须分别标记，不能用 scripted/mock 代替。
 
 1. 在固定回归集之外扩充独立改写和扰动，重复评测拒绝误判、完整性边界及启动稳定性；不能将当前 26/26 当作泛化结论。
 2. 根据岗位需求决定是否将红色标记升级为工具箱检测或 VLM；保留 unknown 和证据约束。
@@ -417,3 +417,61 @@
 - 已做：完整安装说明迁移至 docs/quickstart.md；为 GIF 留出注释位置，未虚构尚未提供的附件地址。
 - 验证：仅文档调整，检查 README 与快速开始的本地链接，不重新运行仿真或模型。
 - 准备做：用户上传 GIF 后填入演示位置，继续既有稳定性与感知改进计划。
+
+### 2026-11-14：MuJoCo 无头家居仿真、ROS 2 桥接与 Nav2 巡检
+
+- 已做：新增用户专用 Docker 环境与容器脚本，软件安装在镜像中；运行使用当前 UID/GID、独立网络、4 CPU / 6 GiB 限制，不修改宿主机 ROS 或 Docker 服务配置。
+- 已做：轮式 MuJoCo 模型通过执行器运动，桥接 cmd_vel、clock、odom、TF、scan、相机/内参及轮子角度；包含命令限幅、非法值停车、0.5 秒墙上时间看门狗。里程计来自仿真真值，非真实估计器。
+- 已做：实时网页与 ROS 桥接共享模型和状态，服务器本地 18081 端口经 SSH 转发；网页状态修改/重置不控制物理和 ROS 时钟。
+- 已做：复用 home_scene 的原始墙体、家具、目标几何、纹理及占据地图生成 MJCF；使用简化平面差速机器人，匹配服务机器人相机高度、俯角与视场。AMCL 发布 map→odom，Nav2 保留速度平滑和碰撞监控。
+- 真实验收：小场景到点→红色区域 detected→返航全部 SUCCEEDED。家居第一轮客厅检查成功，但卧室/返航失败；定位到完全透明碰撞几何被 mj_ray 跳过，修复为微小非零透明度并补充真实射线距离回归，未替换首轮失败报告。
+- 修复后真实家居验收：living→inspect_living→bedroom→inspect_bedroom→return 全部 SUCCEEDED；客厅 detected，卧室 not_detected。报告 runs/mujoco-home-acceptance/20261114T052424Z_6c415edc2f7d/report.md；首轮失败报告与日志保留在同目录的前一次任务中。未调用付费模型 API。
+- 回归：容器中 216 passed（排除仅针对旧 Gazebo 资源的 test_simulation_launch.py）；1 条既有 ROS 未就绪测试的服务响应超时警告。新增测试覆盖模型/地图来源、家居激光实际距离、Nav2 配置、轮式运动、碰撞、传感器/TF 与网页共享状态。
+- 操作：bash scripts/container.sh sim；等待 ready=true；另一个服务器终端用 container.sh exec 执行原 home_inspection.json。详见 docs/mujoco-navigation.md。
+- 边界：同地图单次闭环，不是泛化成功率；未验收云端语义检查的新渲染准确率、真机或原机器人完整动力学等价性。README 原有 Gazebo 成绩不适用于本次 MuJoCo 迁移。
+
+
+### 2026-11-14：移除旧 Gazebo 启动链
+
+- 删除 simulation.launch.py、gazebo_gui.py、service_robot.py 及其专用测试，并移除旧安装树中的启动链接。
+- package.xml 移除 nav2_minimal_tb3_sim、ros_gz_image、xacro；Dockerfile 不再显式安装已无调用的 robot-state-publisher / xacro。
+- ./robopilot sim 改为 MuJoCo + AMCL + Nav2 容器入口；sim-lite 关闭网页，其他任务快捷命令进入同一运行容器，build 构建隔离镜像。
+- 保留 MuJoCo 仍使用的 home_scene/home_materials 共享几何、纹理及同源地图；旧六轮实验脚本只保留既有结果汇总与评分，删除 Gazebo 实验启动器。
+- 更新当前安装、场景与排查文档，历史实验文档标明迁移前环境，不删除原始成绩和失败记录。
+- 验证：完整容器回归 211 passed；快捷命令路由检查通过；实际 ./robopilot tasks 正常，./robopilot doctor 返回 ready=true，360 束激光、240×320 相机、仿真时钟正常。
+- 当前运行的仿真保持不动；本轮未调用付费 API、未修改服务器全局环境，无需为源码清理重新构建镜像。
+
+
+### 2026-11-15：两层 Agent Runtime 首版
+
+- 新增 runtime_store.py：SQLite FULL 同步 checkpoint、历史 revision、context.json 可读投影和运行目录单写租约。
+- 新增 workflow_runtime.py：Planning / Executing / Reviewing 阶段、持久化消息/工具日志/预算、恢复完成阶段、复核拒绝后返回执行。
+- 新增 runtime_tools.py：显式工具白名单、参数/依赖/次数检查，导航、复访、检查、补拍、状态查询、记忆查询和提交复核。
+- 新增 workflow_cli.py 与 workflow CLI：LLM 决策入口、明确标记的离线 scripted mock 入口和 --resume；同机器人 workflow 互斥。
+- ROS 适配器支持调用前持久化目标 UUID，并在恢复时按精确 UUID 查询/取消/等待终态；不取消其他目标，未知状态阻止后续动作。
+- 验证：离线脚本驱动 mock 已完成 Planning→Executing→Reviewing，并验证 --resume 返回同一任务、没有再次调用工具。报告：runs/workflow-runtime-v1-20261115/df4cbc1bf4b34df9b3d064c7c0a0e700/report.md。ROS 独立测试域 173 验证已完成目标恢复、未知 UUID 阻止重放、仅取消指定目标三种情况。
+- 首版边界：Planning 校验已有计划契约，内层选择工具/补充观测/有限重试；不声称已实现开放式自然语言任务分解。仅接入本地 red_marker 视觉，云端 VLM 暂不进入新 runtime，避免用量绕过预算。
+
+- 回归修复记录：首次完整回归发现 5 项历史统计测试失败（上次清理删除了仍被评分引用的 PROFILES 常量）；恢复正反例分类标签后 240 项通过。随后补充模型输出限制和私有推理不落盘测试，最终完整回归为 241 passed、1 warning（既有 ROS inactive 场景服务回复超时）。
+- 增补恢复边界：模型决策 checkpoint 后崩溃不能绕过 Token 超额检查；finish_task 结果与 Executing 完成状态同 checkpoint 提交，恢复直接进入 Reviewing，不再请求一次模型。
+- 文档与入口：docs/agent-runtime.md、README 与 quickstart 已补充新入口；./robopilot workflow 复用同一 ROS 容器，无需重建镜像。
+
+- 最终结果：241 passed、1 条既有 ROS inactive 场景服务回复超时警告；bash 语法与 git diff --check 通过。runtime 新增 27 项单元/故障测试与 3 项 ROS Action 核对测试。
+- 本轮未启动新的真实机器人任务，未调用付费模型；现有 MuJoCo 仿真保持运行。后续需验收真实模型驱动的新入口，不把离线脚本或历史 MuJoCo 固定任务成绩当作新 runtime 的模型成绩。
+
+
+### 2026-11-16：RSI 受控 Prompt 优化闭环首版
+
+- 新增 prompt_registry.py：抽取原视觉 Prompt、不可变内容/策略哈希、候选补充指导、任务启动时固定全部视觉版本。
+- 新增 rsi_store.py：SQLite 存储版本、人工标签案例、数据集、提案、评测和激活历史；图片按内容复制并校验，图片/场景分组不得跨 development/gate/test。
+- 新增 rsi_proposer.py：人工或模型候选，模型只接收 development 标签和失败摘要，候选不能改标签、Schema、必需证据或门禁。
+- 新增 rsi_evaluator.py / rsi_gate.py：基线/候选配对、交替调用顺序、重复试验、预算和部分结果持久化；关键反例、各类/整体不退化、净改进、Token 与时延门禁。
+- 激活重新核对当前基线、图片、Prompt、评测代码摘要，并重算门禁；任务中途不切版本，新任务才使用活动版本；rollback 保留历史。
+- 接入既有 MissionExecutor / SearchAgent / inspect_toolbox；每条视觉观测记录真实版本与哈希，报告展示版本。新 workflow 的云端 VLM 预算接入仍待完成，未放宽首版限制。
+- 新增 rsi CLI 与 fixture-only 完整演示，sandbox 评测禁止用于 production 激活；本轮不调用付费模型，不将合成响应成绩作为真实 VLM 或机器人收益。
+- 验证：RSI 新增 27 项测试；最终容器完整回归 268 passed、1 warning（既有 ROS inactive 场景服务回复超时）。原视觉与家居 45 项针对性测试通过，bash 语法和 git diff --check 通过。
+
+- 离线完整演示：runs/rsi-lifecycle-20261116/summary.json。退化候选被拒，门禁评测 eval_e1b7d967055e48edb41171ca03cd6ff6；有效候选通过并激活，评测 eval_46fad2d45e8842d28886d7b229aa18d1。旧任务快照不变、新任务版本变化、rollback 恢复基线均为 true；model_requests=0，robot_actions=0。
+- CLI：rsi init/import/collect/candidate/propose/evaluate/activate/rollback/status/demo；快捷命令独立使用容器，无需运行仿真。说明：docs/rsi.md，README 和 quickstart 已链接。
+- 评测报告按 failure_type 记录重复图片上的失败比例、下降百分点和相对下降比例，明确不是 MuJoCo 端到端 FRR。生产库拒绝 fixture 评测激活；本轮只在独立 sandbox 库验证版本切换，没有切换用户生产 Prompt。
+- 下一步：收集带人工标注的 development/gate/test 现场图，冻结分组与标签，运行真实模型配对评测和独立最终测试；再接入 MuJoCo 的目标状态参数与新 runtime 的云端视觉预算，开展真实端到端故障复发实验。尚无“FRR 降低 13.3%”或其他 RSI 实测收益结论。

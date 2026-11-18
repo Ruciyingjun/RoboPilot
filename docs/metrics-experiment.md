@@ -1,3 +1,5 @@
+> 历史资料：文中 Gazebo 验收与启动参数属于迁移前版本，旧启动链已删除。当前操作以 [快速开始](quickstart.md) 和 [MuJoCo 导航](mujoco-navigation.md) 为准；旧成绩不代表新仿真成绩。
+
 <!-- 用途：预注册端到端成功率、视觉有效判定率与任务耗时的实验设计和结果口径。 -->
 # 三指标家居任务实验
 
@@ -24,7 +26,7 @@
 
 使用独立ROS域80–85，Gazebo无GUI、无RViz；相机仍真实渲染，云端视觉真实计费。与用户同时打开GUI的时间不可直接比较。模型别名固定但远端权重版本无法锁定。未关闭工作区之外的后台服务，运行耗时包含实际网络和机器调度波动。
 
-scripts/measure_household.py 复用现有check/MissionExecutor，不创建新的执行框架；protocol.json保存场景、预期、阈值、模型及业务代码散列。每轮保存启动日志、task.log、mission.json、图片、最终位姿与关闭状态。轮次逐次落盘，中途失败不删除或选择性重跑。
+迁移前的 scripts/measure_household.py 复用现有check/MissionExecutor，不创建新的执行框架；protocol.json保存场景、预期、阈值、模型及业务代码散列。每轮保存启动日志、task.log、mission.json、图片、最终位姿与关闭状态。轮次逐次落盘，中途失败不删除或选择性重跑。
 
 复现前在Linux桌面关闭自己之前的仿真，加载ROS工作区和本机密钥（不要打印密钥），然后：
 
@@ -35,7 +37,7 @@ unset ROBOPILOT_LLM_API_KEY
 set -a
 source robopilot.local.env
 set +a
-/usr/bin/python3 scripts/measure_household.py --output runs/metrics-new --base-domain 80
+# 旧实验启动器已移除；当前脚本仅支持汇总已有 trials.json。
 ```
 
 输出目录必须不存在，选用ROS域必须未被使用。使用云端VLM会上传仿真相机图像并产生用量。需要桌面图形环境供传感器软件渲染，但不打开GUI。

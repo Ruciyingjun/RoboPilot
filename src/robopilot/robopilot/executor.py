@@ -25,12 +25,14 @@ class MissionExecutor:
         self.store.save(mission)
 
     def run(self, plan, places, planning=None):
+        from .prompt_registry import pin_prompts
         mission = {
             'id': datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ_') + uuid.uuid4().hex[:12],
             'name': plan.name, 'backend': self.backend.name, 'status': 'PENDING',
             'created_at': utc_now(), 'finished_at': None, 'start_pose': None,
             'plan': plan.to_dict(), 'places': {name: asdict(pose) for name, pose in places.items()},
             'planning': planning or {'planner': 'json_file'},
+            'prompt_snapshots':pin_prompts(s.target for s in plan.steps),
             'error': '', 'observations': [], 'steps': [dict(step.to_dict(), status='PENDING', attempts=[], message='')
                                   for step in plan.steps],
         }
@@ -132,7 +134,12 @@ class MissionExecutor:
                 from .toolbox_vision import inspect_toolbox
                 remaining=deadline-time.monotonic()
                 if remaining<=0: raise TimeoutError('检查预算已耗尽')
-                result = inspect_toolbox(frame.image,remaining,target=step.target)
+                from .prompt_registry import pin_prompts
+                snapshots = mission.setdefault('prompt_snapshots',{})
+                if step.target not in snapshots:
+                    snapshots.update(pin_prompts([step.target]))
+                result = inspect_toolbox(frame.image,remaining,target=step.target,
+                                         prompt_snapshot=snapshots[step.target])
             else:
                 result = detect_red_marker(frame.image)
             relative = 'evidence/' + observation['id'] + '.png'

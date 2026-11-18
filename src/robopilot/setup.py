@@ -14,7 +14,7 @@ setup(
         ('share/robopilot/config', glob('config/*.yaml')),
         ('share/robopilot/config', glob('config/*.env.example')),
         ('share/robopilot/examples', glob('examples/*.json')),
-        ('share/robopilot/launch', glob('launch/*.launch.py')),
+        ('share/robopilot/models', glob('models/*.xml')),
     ],
     install_requires=['setuptools', 'PyYAML'],
     tests_require=['pytest'],
@@ -23,5 +23,7 @@ setup(
     maintainer_email='maintainer@example.invalid',
     description='Language-grounded ROS 2 inspection with evidence and spatial observation memory',
     license='Proprietary',
-    entry_points={'console_scripts': ['robopilot = robopilot.cli:main']},
+    entry_points={'console_scripts': ['robopilot = robopilot.cli:main',
+                                      'robopilot-mujoco = robopilot.mujoco_bridge:main',
+                                      'robopilot-mujoco-sim = robopilot.mujoco_sim:main']},
 )

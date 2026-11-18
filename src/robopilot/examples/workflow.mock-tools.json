@@ -1,0 +1,10 @@
+[
+  {"action":"observe","step":""},
+  {"action":"navigate_to","step":"go_a"},
+  {"action":"capture_image","step":""},
+  {"action":"inspect_target","step":"inspect_a"},
+  {"action":"navigate_to","step":"go_b"},
+  {"action":"inspect_target","step":"inspect_b"},
+  {"action":"return_to_start","step":"return"},
+  {"action":"finish_task","step":""}
+]

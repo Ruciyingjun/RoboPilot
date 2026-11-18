@@ -15,7 +15,8 @@ class LLMError(RuntimeError):
 
 def request_plan(endpoint, model, api_key, messages, schema, response_mode='json', timeout_s=30,
                  *, provider='generic', thinking='enabled', reasoning_effort='high', turn=None,
-                 tool_name='create_plan', tool_description='Submit a robot mission for validation, not execution'):
+                 tool_name='create_plan', tool_description='Submit a robot mission for validation, not execution',
+                 max_output_tokens=None):
     parsed = urlsplit(endpoint)
     if parsed.scheme != 'https' or not parsed.hostname or parsed.username or parsed.password or parsed.fragment:
         raise ValidationError('LLM endpoint must be a complete HTTPS URL without user credentials or fragment')
@@ -26,6 +27,10 @@ def request_plan(endpoint, model, api_key, messages, schema, response_mode='json
     if provider not in ('generic', 'deepseek'):
         raise ValidationError('Unsupported LLM provider')
     payload = {'model': model, 'messages': messages, 'stream': False}
+    if max_output_tokens is not None:
+        if type(max_output_tokens) is not int or max_output_tokens < 1:
+            raise ValidationError('Invalid model output token limit')
+        payload['max_tokens'] = max_output_tokens
     if provider == 'deepseek':
         if thinking not in ('enabled', 'disabled') or reasoning_effort not in ('low', 'high', 'max'):
             raise ValidationError('Invalid DeepSeek thinking settings')

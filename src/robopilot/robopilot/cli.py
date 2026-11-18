@@ -34,6 +34,8 @@ def positive_timeout(text):
 def main(argv=None):
     parser = argparse.ArgumentParser(description='RoboPilot language-grounded inspection missions (v0.5)')
     subparsers = parser.add_subparsers(dest='command', required=True)
+    from .rsi_cli import add_rsi_parser
+    add_rsi_parser(subparsers)
     for name in ('validate', 'run', 'mission'):
         sub = subparsers.add_parser(name)
         sub.add_argument('--places', required=True, type=Path)
@@ -89,6 +91,18 @@ def main(argv=None):
     agent.add_argument('--max-turns', type=int, choices=range(1,41), default=24)
     agent.add_argument('--total-timeout', type=positive_timeout, default=600)
     agent.add_argument('--mock-images', default='')
+    workflow = subparsers.add_parser('workflow', help='Durable planning/executing/reviewing agent runtime')
+    workflow.add_argument('--places', type=Path)
+    workflow.add_argument('--plan', type=Path, help='Approved JSON task contract for a new run')
+    workflow.add_argument('--resume', action='store_true', help='Restore contract and budgets from checkpoint')
+    workflow.add_argument('--backend', choices=('mock','ros'), default='mock')
+    workflow.add_argument('--output', type=Path, required=True, help='One dedicated directory per workflow run')
+    workflow.add_argument('--max-turns', type=int, choices=range(1,101), default=24)
+    workflow.add_argument('--max-tokens', type=int, default=16000)
+    workflow.add_argument('--total-timeout', type=positive_timeout, default=600.)
+    workflow.add_argument('--decider', choices=('llm','scripted'), default='llm')
+    workflow.add_argument('--script', type=Path, help='Offline test decisions; never represents an LLM result')
+    workflow.add_argument('--mock-images', default='')
     check = subparsers.add_parser('check', help='List supported inspections, preview user selection, confirm execution')
     check.add_argument('--places', type=Path, default=Path('src/robopilot/config/places.home.yaml'))
     check.add_argument('--instruction')
@@ -97,11 +111,17 @@ def main(argv=None):
     check.add_argument('--backend', choices=('ros','mock'), default='mock')
     check.add_argument('--output', type=Path, default=Path('runs/user-inspection'))
     args = parser.parse_args(argv)
+    if args.command=='rsi':
+        from .rsi_cli import rsi_command
+        return rsi_command(args)
     if args.command == 'check':
         from .task_catalog import run_interactive
         return run_interactive(args)
     if args.command == 'agent':
         return agent_command(args)
+    if args.command == 'workflow':
+        from .workflow_cli import workflow_command
+        return workflow_command(args)
     if args.command == 'benchmark-plan':
         try:
             from .benchmark import run_benchmark

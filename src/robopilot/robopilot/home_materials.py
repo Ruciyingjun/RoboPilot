@@ -1,4 +1,4 @@
-"""用途：本地生成可复现的家居纹理，并为 Gazebo 家具设置 PBR 材质。"""
+"""用途：本地生成可复现的家居纹理，并为共享家居几何设置 PBR 材质。"""
 
 from pathlib import Path
 import math

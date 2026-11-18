@@ -1,1 +1,0 @@
-/home/ruciyingjun/Desktop/enbodied_agent/build/robopilot/launch/simulation.launch.py

@@ -23,6 +23,61 @@ from robopilot.schemas import Pose
 pytestmark = pytest.mark.ros
 
 
+def test_recover_known_completed_goal_uuid(server):
+    import uuid
+    goal_id = uuid.uuid4().hex
+    original = RosNavigationBackend(use_sim_time=False)
+    recovered = RosNavigationBackend(use_sim_time=False)
+    try:
+        original.prepare(8)
+        assert original.navigate(Pose(2.,0.,0.),3,goal_id=goal_id).status=='SUCCEEDED'
+        result = recovered.reconcile_goal(goal_id,3)
+        assert result.status=='SUCCEEDED' and result.safe_to_continue
+        assert server['goals']==1
+    finally:
+        recovered.close()
+        original.close()
+
+
+def test_unknown_recovery_goal_is_not_safe_to_replay(server):
+    import uuid
+    backend = RosNavigationBackend(use_sim_time=False)
+    try:
+        backend.prepare(8)
+        result = backend.reconcile_goal(uuid.uuid4().hex,3)
+        assert not result.safe_to_continue
+        assert server['goals']==0 and server['cancels']==0
+    finally:
+        backend.close()
+
+
+def test_recovery_cancels_only_exact_goal_uuid(server):
+    import uuid
+    from unique_identifier_msgs.msg import UUID
+    original = RosNavigationBackend(use_sim_time=False)
+    recovered = RosNavigationBackend(use_sim_time=False)
+    other = None
+    try:
+        original.prepare(8)
+        server['outcome']='slow'
+        goal_id = uuid.uuid4().hex
+        goal = NavigateToPose.Goal()
+        first = original._wait(original.client.send_goal_async(goal,
+            goal_uuid=UUID(uuid=list(bytes.fromhex(goal_id)))),3)
+        other = original._wait(original.client.send_goal_async(goal),3)
+        first_result = first.get_result_async()
+        other_result = other.get_result_async()
+        result = recovered.reconcile_goal(goal_id,3)
+        assert result.safe_to_continue and result.status=='FAILED'
+        original._wait(first_result,3)
+        assert not other_result.done() and server['cancels']==1
+        original._wait(other.cancel_goal_async(),3)
+        original._wait(other_result,3)
+    finally:
+        recovered.close()
+        original.close()
+
+
 @pytest.fixture
 def server(monkeypatch):
     # Keep test endpoints separate from the user's normal ROS domain.

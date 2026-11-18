@@ -1,10 +1,12 @@
 """用途：通过 ROS 2 Action 调用 Nav2，检查定位就绪，处理反馈、超时和取消确认。"""
 
 import math
+import os
 import time
 
 import rclpy
 from action_msgs.msg import GoalStatus
+from action_msgs.srv import CancelGoal
 from geometry_msgs.msg import PoseStamped
 from lifecycle_msgs.srv import GetState
 from nav2_msgs.action import NavigateToPose
@@ -16,6 +18,7 @@ from rclpy.parameter import Parameter
 from rclpy.signals import SignalHandlerOptions
 from rclpy.time import Time
 from tf2_ros import Buffer, TransformException, TransformListener
+from unique_identifier_msgs.msg import UUID
 
 from .backends import NavigationResult
 from .schemas import Pose
@@ -162,7 +165,49 @@ class RosNavigationBackend:
         finally:
             self.node.destroy_subscription(sub)
 
-    def navigate(self, pose, timeout_s):
+    def runtime_identity(self):
+        # Docker hostname identifies the simulation container; never resume into a new one.
+        return {'backend':'ros','host':os.uname().nodename,
+                'domain':os.environ.get('ROS_DOMAIN_ID','0')}
+
+    def runtime_time_ns(self):
+        return self.node.get_clock().now().nanoseconds
+
+    def runtime_pose(self, timeout_s):
+        return self.prepare(timeout_s)
+
+    def reconcile_goal(self, goal_id, timeout_s):
+        """Cancel ONLY a checkpointed UUID and wait for its terminal result; unknown is unsafe."""
+        identifier = UUID(uuid=list(bytes.fromhex(goal_id)))
+        result_client = self.node.create_client(NavigateToPose.Impl.GetResultService,
+                                               '/navigate_to_pose/_action/get_result')
+        cancel_client = self.node.create_client(CancelGoal, '/navigate_to_pose/_action/cancel_goal')
+        deadline = time.monotonic()+timeout_s
+        try:
+            if not result_client.wait_for_service(timeout_sec=max(0.,deadline-time.monotonic())):
+                raise TimeoutError('Goal result service unavailable')
+            if not cancel_client.wait_for_service(timeout_sec=max(0.,deadline-time.monotonic())):
+                raise TimeoutError('Goal cancellation service unavailable')
+            request = NavigateToPose.Impl.GetResultService.Request()
+            request.goal_id = identifier
+            future = result_client.call_async(request)
+            cancel = CancelGoal.Request()
+            cancel.goal_info.goal_id = identifier
+            self._wait(cancel_client.call_async(cancel), max(0.,deadline-time.monotonic()))
+            response = self._wait(future, max(0.,deadline-time.monotonic()))
+            terminal = response.status in (GoalStatus.STATUS_SUCCEEDED,
+                GoalStatus.STATUS_CANCELED, GoalStatus.STATUS_ABORTED)
+            succeeded = response.status == GoalStatus.STATUS_SUCCEEDED and response.result.error_code == 0
+            return NavigationResult('SUCCEEDED' if succeeded else 'FAILED',
+                'RECOVERED_GOAL', 'Reconciled exact goal UUID', terminal)
+        except Exception:
+            return NavigationResult('FAILED', 'GOAL_STATE_UNKNOWN',
+                                    'Cannot confirm this goal has terminated', False)
+        finally:
+            self.node.destroy_client(result_client)
+            self.node.destroy_client(cancel_client)
+
+    def navigate(self, pose, timeout_s, *, goal_id=None):
         if self.send_future is not None or self.goal_handle is not None:
             raise RuntimeError('A previous navigation request is still outstanding')
         self.last_feedback = {}
@@ -175,7 +220,8 @@ class RosNavigationBackend:
         goal.pose.pose.orientation.z = math.sin(pose.yaw / 2)
         goal.pose.pose.orientation.w = math.cos(pose.yaw / 2)
         deadline = time.monotonic() + timeout_s
-        self.send_future = self.client.send_goal_async(goal, feedback_callback=self._feedback)
+        options = {} if goal_id is None else {'goal_uuid':UUID(uuid=list(bytes.fromhex(goal_id)))}
+        self.send_future = self.client.send_goal_async(goal, feedback_callback=self._feedback, **options)
         try:
             self.goal_handle = self._wait(self.send_future, max(0, deadline - time.monotonic()))
             self.send_future = None

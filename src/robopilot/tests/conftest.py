@@ -6,7 +6,8 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
-def isolate_model_configuration(monkeypatch):
+def isolate_model_configuration(monkeypatch,tmp_path):
+    monkeypatch.setenv('ROBOPILOT_RSI_DIR',str(tmp_path/'isolated-rsi'))
     for key in list(os.environ):
         if key.startswith('ROBOPILOT_LLM_') or key == 'DEEPSEEK_API_KEY':
             monkeypatch.delenv(key, raising=False)

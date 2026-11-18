@@ -35,6 +35,7 @@ class SearchAgent(MissionExecutor):
     """Only ordered find-first supported-target search and return; no arbitrary NL contract."""
 
     def run_search(self, places, search_places, decide, *, max_turns=24, total_timeout=600, model='test-double', target='red_marker'):
+        from .prompt_registry import pin_prompts
         if target not in TARGETS:
             raise ValidationError('Unsupported target')
         if (not search_places or len(search_places) > 6 or len(set(search_places)) != len(search_places)
@@ -48,6 +49,7 @@ class SearchAgent(MissionExecutor):
             'plan': {'version': 1, 'name': 'feedback_search', 'steps': []},
             'places': {p: asdict(v) for p,v in places.items()}, 'observations': [], 'steps': [],
             'planning': {'planner': 'llm_loop', 'model': model},
+            'prompt_snapshots':pin_prompts([target]),
             'agent': {'contract': {'target': target, 'ordered_places': search_places,
                                   'stop_when_detected': True, 'return_required': True}, 'turns': []}}
         deadline = time.monotonic()+total_timeout

@@ -1,0 +1,11 @@
+version: 1
+frame_id: map
+places:
+  marker_check:
+    x: 0.8
+    y: 0.0
+    yaw: 0.0
+  second_check:
+    x: 0.5
+    y: -0.8
+    yaw: 0.5

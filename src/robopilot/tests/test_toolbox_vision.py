@@ -142,14 +142,3 @@ def test_image_processing_time_counts_toward_budget(monkeypatch):
     monkeypatch.setattr('robopilot.toolbox_vision.time.monotonic',lambda:next(ticks))
     assert inspect_toolbox(IMAGE,1,config=CONFIG,request=fake({},calls))['status']=='unknown'
     assert not calls
-
-
-def test_head_camera_pitch_matches_sdf_and_tf():
-    from robopilot.service_robot import configure_robot
-    root=ET.fromstring('<sdf version="1.6"><model name="test"><link name="base_link"/></model></sdf>')
-    description=ET.fromstring(configure_robot(root,'<robot name="test"><link name="base_link"/></robot>'))
-    pose=root.findtext("model/link/sensor[@name='robopilot_rgb']/pose").split()
-    joint=description.find("joint[@name='robopilot_camera_link_joint']/origin")
-    assert float(pose[4])==pytest.approx(.55)
-    assert joint.get('xyz').split()==pose[:3]
-    assert joint.get('rpy').split()==pose[3:]

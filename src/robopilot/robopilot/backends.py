@@ -40,7 +40,20 @@ class MockBackend:
     def prepare(self, timeout_s):
         return self.start
 
-    def navigate(self, pose, timeout_s):
+    def runtime_identity(self):
+        return {'backend':'mock', 'version':1}
+
+    def runtime_time_ns(self):
+        return None
+
+    def runtime_pose(self, timeout_s):
+        return self.position
+
+    def reconcile_goal(self, goal_id, timeout_s):
+        # Mock movement has no external action server; an interrupted call is not a success.
+        return NavigationResult('FAILED', 'MOCK_INTERRUPTED', 'Interrupted mock goal is stopped')
+
+    def navigate(self, pose, timeout_s, *, goal_id=None):
         self.visited.append(pose)
         outcome = self.outcomes.pop(0) if self.outcomes else 'succeeded'
         if outcome == 'interrupt':

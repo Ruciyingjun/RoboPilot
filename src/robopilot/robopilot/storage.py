@@ -65,6 +65,8 @@ def render_report(mission):
             lines.append('- 条件满足：' + {'detected':'是','not_detected':'否','unknown':'无法确认'}[obs['status']])
         if obs.get('method'):
             lines.append('- 感知方法：' + _cell(obs['method']) + '；模型：' + _cell(obs.get('model','本地')))
+        if obs.get('prompt_version'):
+            lines.append('- Prompt 版本：' + _cell(obs['prompt_version']) + '；内容摘要：' + _cell(obs.get('prompt_sha256','')))
         if obs.get('visual_cues'):
             lines.append('- 模型报告的可见特征（未经独立标注核验）：' + _cell(', '.join(obs['visual_cues'])))
         if obs.get('evidence_path'):
